@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Flag Master Pro - Ultimate Quiz</title>
+    <title>Flag Master Pro - Europe Edition</title>
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         :root {
-            --accent: #6366f1;
-            --accent-light: #818cf8;
+            --accent: #ef4444; /* Changed accent color to give it a unique Europe look */
+            --accent-light: #f87171;
             --bg: #0f172a;
             --card-bg: rgba(30, 41, 59, 0.7);
             --text-main: #f8fafc;
@@ -101,7 +101,7 @@
         }
 
         .btn-fancy {
-            background: linear-gradient(135deg, var(--accent), #4338ca);
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8); /* European Blue */
             color: white;
             border: none;
             padding: 18px 24px;
@@ -116,7 +116,7 @@
             gap: 12px;
             transition: all 0.2s;
             margin-bottom: 12px;
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
         }
 
         .btn-fancy:active { transform: scale(0.96); }
@@ -125,6 +125,7 @@
             background: var(--glass);
             border: 1px solid var(--border);
             color: var(--text-main);
+            box-shadow: none;
         }
 
         .question-label {
@@ -202,7 +203,7 @@
 
         .progress-fill {
             height: 100%;
-            background: var(--accent);
+            background: #3b82f6;
             width: 0%;
             transition: width 0.3s ease;
         }
@@ -245,17 +246,17 @@
         
         <div id="screen-loading" class="screen active" style="justify-content: center; align-items: center;">
             <div class="stat-badge" style="font-size: 1.5rem; padding: 20px;">
-                <i class="fas fa-globe-africa fa-spin"></i>
+                <i class="fas fa-globe-europe fa-spin"></i>
             </div>
-            <p style="margin-top: 20px; color: var(--text-dim)" id="loading-text">Initialisation du monde...</p>
+            <p style="margin-top: 20px; color: var(--text-dim)" id="loading-text">Initialisation de l'Europe...</p>
             <button id="retry-btn" class="btn-fancy btn-outline" style="display: none; width: auto; margin-top: 20px;" onclick="game.init()">Réessayer</button>
         </div>
 
         <div id="screen-menu" class="screen">
             <div style="margin-top: 60px; text-align: center;">
-                <p style="color: var(--accent-light); font-weight: 800; letter-spacing: 4px;">BIENVENUE SUR</p>
-                <h1 class="hero-title">FLAG MASTER</h1>
-                <p style="color: var(--text-dim); margin-bottom: 40px;">Testez vos connaissances géographiques mondiales</p>
+                <p style="color: #60a5fa; font-weight: 800; letter-spacing: 4px;">ÉDITION SPÉCIALE</p>
+                <h1 class="hero-title">EUROPE QUIZ</h1>
+                <p style="color: var(--text-dim); margin-bottom: 40px;">Drapeaux, Pays et Capitales du continent européen</p>
             </div>
 
             <div class="options-list" style="margin-top: auto;">
@@ -277,11 +278,11 @@
                     <i class="fas fa-chevron-left"></i>
                 </button>
                 <div class="stat-badge">
-                    <i class="fas fa-fire streak-fire" id="stat-streak-icon"></i>
+                    <i class="fas fa-fire" id="stat-streak-icon"></i>
                     <span id="stat-streak">0</span>
                 </div>
                 <div class="stat-badge">
-                    <i class="fas fa-heart" style="color: var(--danger)"></i>
+                    <i class="fas fa-heart" style="color: #ef4444"></i>
                     <span id="stat-lives">3</span>
                 </div>
             </div>
@@ -314,7 +315,7 @@
                     <i class="fas fa-trophy" style="color: #fbbf24"></i> SCORE FINAL
                 </div>
                 <h2 id="final-score" style="font-size: 3.5rem; margin: 0;">240</h2>
-                <p id="final-msg" style="color: var(--text-dim); margin: 20px 0 40px;">Impressionnant ! Vous connaissez vos pays.</p>
+                <p id="final-msg" style="color: var(--text-dim); margin: 20px 0 40px;">Impressionnant ! L'Europe n'a plus de secrets pour vous.</p>
                 <button class="btn-fancy" onclick="game.showMenu()">REJOUER</button>
             </div>
         </div>
@@ -324,9 +325,8 @@
     <div id="feedback" class="feedback-overlay"></div>
 
     <script>
-        // Use a more stable backup API source (GitHub raw)
         const DATA_SOURCE = 'https://raw.githubusercontent.com/mledoze/countries/master/countries.json';
-        const FLAG_CDN = 'https://flagcdn.com/w320/'; // {cca2}.png
+        const FLAG_CDN = 'https://flagcdn.com/w320/';
 
         const game = {
             data: [],
@@ -342,15 +342,15 @@
                 const loadingText = document.getElementById('loading-text');
                 const retryBtn = document.getElementById('retry-btn');
                 
-                loadingText.innerText = "Chargement des frontières...";
+                loadingText.innerText = "Cartographie de l'Europe...";
                 retryBtn.style.display = 'none';
 
                 try {
                     const res = await fetch(DATA_SOURCE);
                     const raw = await res.json();
                     
-                    // Filter and format data to match previous logic
-                    this.data = raw.filter(c => c.capital?.[0] && c.cca2).map(c => ({
+                    // CRITICAL FILTER: Filter ONLY for Europe region
+                    this.data = raw.filter(c => c.capital?.[0] && c.cca2 && c.region === 'Europe').map(c => ({
                         name: { common: c.name.common },
                         capital: c.capital,
                         cca2: c.cca2.toLowerCase(),
@@ -417,18 +417,18 @@
                 hintBtn.style.pointerEvents = 'auto';
 
                 if (this.mode === 'flag') {
-                    label.innerText = 'À QUEL PAYS APPARTIENT CE DRAPEAU ?';
+                    label.innerText = 'À QUEL PAYS APPARTIENT CE DRAPEAU EUROPEEN ?';
                     text.style.display = 'none';
                     flagBox.style.display = 'flex';
                     img.src = this.current.flags.png;
                     this.fillOptions(options, 'name.common', grid);
                 } else if (this.mode === 'capital') {
-                    label.innerText = 'QUELLE EST LE PAYS DE CETTE CAPITALE ?';
+                    label.innerText = 'QUEL EST LE PAYS DE CETTE CAPITALE EUROPEENNE ?';
                     text.style.display = 'block';
                     text.innerText = this.current.capital[0];
                     this.fillOptions(options, 'name.common', grid);
                 } else {
-                    label.innerText = 'QUELLE EST LA CAPITALE DE CE PAYS ?';
+                    label.innerText = 'QUELLE EST LA CAPITALE DE CE PAYS EUROPEEN ?';
                     text.style.display = 'block';
                     text.innerText = this.current.name.common;
                     this.fillOptions(options, 'capital.0', grid);
@@ -518,9 +518,9 @@
             end() {
                 document.getElementById('final-score').innerText = this.score;
                 const msg = document.getElementById('final-msg');
-                if(this.score > 200) msg.innerText = "Légendaire ! Vous êtes un expert.";
+                if(this.score > 200) msg.innerText = "Légendaire ! L'Europe n'a plus de secrets pour vous.";
                 else if(this.score > 100) msg.innerText = "Pas mal ! Encore un peu d'entraînement.";
-                else msg.innerText = "Continuez d'apprendre, le monde est vaste !";
+                else msg.innerText = "Continuez d'apprendre, l'Europe est pleine de surprises !";
                 this.switchScreen('result');
             },
 
