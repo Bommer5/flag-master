@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flag Master - Devinez les Drapeaux</title>
+    <style>
+        :root {
+            --primary: #4a90e2;
+            --secondary: #f39c12;
+            --success: #2ecc71;
+            --danger: #e74c3c;
+            --bg: #f5f7fa;
+            --text: #2c3e50;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            max-width: 500px;
+            width: 100%;
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        h1 { margin-bottom: 20px; color: var(--primary); }
+
+        .menu-screen, .game-screen, .loading-screen {
+            display: none;
+        }
+
+        .active { display: block; }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 8px;
+            background: var(--primary);
+            color: white;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .btn:hover { background: #357abd; }
+        .btn:active { transform: scale(0.98); }
+
+        .btn-secondary { background: var(--secondary); }
+        .btn-secondary:hover { background: #d35400; }
+
+        .question-box {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .flag-img {
+            max-width: 200px;
+            height: auto;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            margin: 10px 0;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .option-btn {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .option-btn.correct { background: var(--success); color: white; border-color: var(--success); }
+        .option-btn.wrong { background: var(--danger); color: white; border-color: var(--danger); }
+
+        .score-board {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+        .hint-text {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        #hint-container {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px dashed #ccc;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .drag-area {
+            min-height: 50px;
+            border: 2px dashed #bbb;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div id="loading" class="loading-screen active">
+            <h2>Chargement des données...</h2>
+            <p>On récupère les pays du monde entier.</p>
+        </div>
+
+        <div id="menu" class="menu-screen">
+            <h1>Flag Master</h1>
+            <p>Choisissez votre mode de jeu :</p>
+            <button class="btn" onclick="startGame('capital')">Mode Capitale</button>
+            <button class="btn" onclick="startGame('country')">Mode Pays</button>
+            <button class="btn" onclick="startGame('flag')">Mode Drapeau</button>
+        </div>
+
+        <div id="game" class="game-screen">
+            <div id="mode-title">Mode</div>
+            <div id="question-area">
+                <div class="question-box" id="question-content">?</div>
+                <div id="image-container"></div>
+            </div>
+
+            <div id="game-controls">
+                <p>Trouvez le reste :</p>
+                <div id="options-container" class="options-grid"></div>
+                
+                <div id="hint-section">
+                    <button class="btn btn-secondary" style="padding: 8px; font-size: 0.9rem;" onclick="toggleHint()">Aide (Afficher les pays)</button>
+                    <div id="hint-container">
+                        <p id="hint-list"></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="score-board">
+                Score: <span id="score">0</span> | Vies: <span id="lives">3</span>
+            </div>
+            <button class="btn" style="background: #95a5a6; margin-top: 20px;" onclick="showMenu()">Retour au menu</button>
+        </div>
+    </div>
+
+    <script>
+        let allCountries = [];
+        let currentGame = {
+            mode: '',
+            currentCountry: null,
+            score: 0,
+            lives: 3,
+            options: []
+        };
+
+        async function fetchCountries() {
+            try {
+                const response = await fetch('https://restcountries.com/v3.1/all?fields=name,capital,flags');
+                const data = await response.json();
+                allCountries = data.filter(c => c.capital && c.capital.length > 0 && c.flags);
+                document.getElementById('loading').classList.remove('active');
+                document.getElementById('menu').classList.add('active');
+            } catch (error) {
+                console.error("Erreur lors de la récupération des pays:", error);
+                alert("Impossible de charger les données. Vérifiez votre connexion.");
+            }
+        }
+
+        function showMenu() {
+            document.querySelectorAll('.menu-screen, .game-screen, .loading-screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('menu').classList.add('active');
+        }
+
+        function startGame(mode) {
+            currentGame.mode = mode;
+            currentGame.score = 0;
+            currentGame.lives = 3;
+            updateUI();
+            document.querySelectorAll('.menu-screen, .game-screen, .loading-screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('game').classList.add('active');
+            nextQuestion();
+        }
+
+        function nextQuestion() {
+            if (currentGame.lives <= 0) {
+                alert("Game Over! Score final: " + currentGame.score);
+                showMenu();
+                return;
+            }
+
+            // Pick a random country
+            const index = Math.floor(Math.random() * allCountries.length);
+            currentGame.currentCountry = allCountries[index];
+
+            // Generate options (3 wrong + 1 correct)
+            let options = [currentGame.currentCountry];
+            while (options.length < 4) {
+                const randomOption = allCountries[Math.floor(Math.random() * allCountries.length)];
+                if (!options.includes(randomOption)) {
+                    options.push(randomOption);
+                }
+            }
+            currentGame.options = options.sort(() => Math.random() - 0.5);
+
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const content = document.getElementById('question-content');
+            const imgContainer = document.getElementById('image-container');
+            const optionsContainer = document.getElementById('options-container');
+            const modeTitle = document.getElementById('mode-title');
+            
+            content.innerHTML = '';
+            imgContainer.innerHTML = '';
+            optionsContainer.innerHTML = '';
+            document.getElementById('hint-container').style.display = 'none';
+
+            const c = currentGame.currentCountry;
+
+            if (currentGame.mode === 'capital') {
+                modeTitle.innerText = "Quelle est le pays de cette capitale ?";
+                content.innerText = c.capital[0];
+                // In this mode, we show the capital, user must find country and flag.
+                // To simplify, we'll ask for the country name, and show the flag as feedback.
+                renderOptions('name');
+            } else if (currentGame.mode === 'country') {
+                modeTitle.innerText = "Quelle est la capitale de ce pays ?";
+                content.innerText = c.name.common;
+                renderOptions('capital');
+            } else if (currentGame.mode === 'flag') {
+                modeTitle.innerText = "À quel pays appartient ce drapeau ?";
+                const img = document.createElement('img');
+                img.src = c.flags.png;
+                img.className = 'flag-img';
+                imgContainer.appendChild(img);
+                renderOptions('name');
+            }
+            
+            updateUI();
+        }
+
+        function renderOptions(property) {
+            const container = document.getElementById('options-container');
+            const hintList = document.getElementById('hint-list');
+            hintList.innerText = "Options possibles : " + currentGame.options.map(o => o.name.common).join(', ');
+
+            currentGame.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                
+                let displayText = '';
+                if (property === 'name') displayText = opt.name.common;
+                else if (property === 'capital') displayText = opt.capital[0];
+                
+                btn.innerText = displayText;
+                btn.onclick = () => checkAnswer(opt, btn);
+                container.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selected, btn) {
+            const isCorrect = selected === currentGame.currentCountry;
+            
+            if (isCorrect) {
+                btn.classList.add('correct');
+                currentGame.score += 10;
+                setTimeout(nextQuestion, 1000);
+            } else {
+                btn.classList.add('wrong');
+                currentGame.lives -= 1;
+                if (currentGame.lives <= 0) {
+                    setTimeout(nextQuestion, 1000);
+                } else {
+                    // Flash correct answer?
+                    setTimeout(() => {
+                        btn.classList.remove('wrong');
+                    }, 500);
+                }
+            }
+            updateUI();
+        }
+
+        function updateUI() {
+            document.getElementById('score').innerText = currentGame.score;
+            document.getElementById('lives').innerText = currentGame.lives;
+        }
+
+        function toggleHint() {
+            const hint = document.getElementById('hint-container');
+            hint.style.display = hint.style.display === 'none' ? 'block' : 'none';
+        }
+
+        fetchCountries();
+    </script>
+</body>
+</html>
