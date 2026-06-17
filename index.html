@@ -10,8 +10,8 @@
     
     <style>
         :root {
-            --accent: #ef4444; /* Changed accent color to give it a unique Europe look */
-            --accent-light: #f87171;
+            --accent: #3b82f6;
+            --accent-light: #60a5fa;
             --bg: #0f172a;
             --card-bg: rgba(30, 41, 59, 0.7);
             --text-main: #f8fafc;
@@ -25,6 +25,7 @@
         * {
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
+            user-select: none;
         }
 
         body {
@@ -60,7 +61,7 @@
             opacity: 0;
             pointer-events: none;
             transform: translateY(20px);
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 1;
         }
 
@@ -75,7 +76,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
         .stat-badge {
@@ -91,20 +92,11 @@
 
         .stat-badge i { color: var(--accent-light); }
 
-        .card {
-            background: var(--card-bg);
-            border-radius: 24px;
-            border: 1px solid var(--border);
-            padding: 32px;
-            backdrop-filter: blur(10px);
-            text-align: center;
-        }
-
         .btn-fancy {
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8); /* European Blue */
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
             color: white;
             border: none;
-            padding: 18px 24px;
+            padding: 16px 24px;
             border-radius: 18px;
             font-size: 1.1rem;
             font-weight: 700;
@@ -116,7 +108,6 @@
             gap: 12px;
             transition: all 0.2s;
             margin-bottom: 12px;
-            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
         }
 
         .btn-fancy:active { transform: scale(0.96); }
@@ -125,55 +116,81 @@
             background: var(--glass);
             border: 1px solid var(--border);
             color: var(--text-main);
-            box-shadow: none;
+        }
+
+        .question-header {
+            text-align: center;
+            margin-bottom: 20px;
         }
 
         .question-label {
-            color: var(--text-dim);
+            color: var(--accent-light);
             text-transform: uppercase;
             letter-spacing: 2px;
             font-size: 0.75rem;
             font-weight: 800;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
         }
 
-        .question-text {
-            font-size: 2rem;
-            font-weight: 800;
-            margin-bottom: 32px;
-            line-height: 1.2;
-        }
-
-        .flag-container {
-            width: 100%;
-            height: 180px;
-            background: var(--glass);
-            border-radius: 20px;
+        .step-indicator {
             display: flex;
             justify-content: center;
-            align-items: center;
-            margin-bottom: 32px;
-            overflow: hidden;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .step-dot {
+            width: 30px;
+            height: 4px;
+            background: var(--glass);
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
+
+        .step-dot.active { background: var(--accent-light); width: 60px; }
+        .step-dot.done { background: var(--success); }
+
+        .main-display {
+            background: var(--card-bg);
+            border-radius: 24px;
             border: 1px solid var(--border);
+            padding: 24px;
+            margin-bottom: 24px;
+            text-align: center;
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(10px);
         }
 
         .flag-img {
-            max-height: 120px;
-            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
+            max-height: 100px;
+            border-radius: 8px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
         }
 
-        .options-list {
+        .display-text {
+            font-size: 1.8rem;
+            font-weight: 800;
+        }
+
+        .options-grid {
             display: grid;
-            gap: 12px;
+            grid-template-columns: 1fr;
+            gap: 10px;
             margin-top: auto;
         }
 
-        .option-item {
+        .option-btn {
             background: var(--glass);
             border: 1px solid var(--border);
             padding: 16px 20px;
             border-radius: 16px;
+            color: var(--text-main);
             font-weight: 600;
+            text-align: left;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -181,62 +198,43 @@
             transition: all 0.2s;
         }
 
-        .option-item:hover { background: rgba(255,255,255,0.06); }
-        .option-item.correct { 
-            background: rgba(34, 197, 94, 0.2); 
-            border-color: var(--success);
-            color: var(--success);
-        }
-        .option-item.wrong { 
-            background: rgba(239, 68, 68, 0.2); 
-            border-color: var(--danger);
-            color: var(--danger);
-        }
+        .option-btn:active { background: rgba(255,255,255,0.1); }
+        .option-btn.correct { background: rgba(34, 197, 94, 0.2); border-color: var(--success); color: var(--success); }
+        .option-btn.wrong { background: rgba(239, 68, 68, 0.2); border-color: var(--danger); color: var(--danger); }
 
         .progress-track {
             height: 6px;
             background: var(--glass);
-            border-radius: 99px;
-            margin-bottom: 24px;
+            border-radius: 3px;
+            margin-bottom: 20px;
             overflow: hidden;
         }
 
         .progress-fill {
             height: 100%;
-            background: #3b82f6;
+            background: var(--accent-light);
             width: 0%;
             transition: width 0.3s ease;
         }
 
-        .streak-fire {
-            animation: flicker 0.5s infinite alternate;
-            color: #fbbf24 !important;
-        }
-
-        @keyframes flicker {
-            0% { opacity: 0.8; transform: scale(1); }
-            100% { opacity: 1; transform: scale(1.1); }
-        }
-
-        .feedback-overlay {
+        .feedback-pop {
             position: fixed;
-            inset: 0;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 5rem;
             pointer-events: none;
             z-index: 100;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 5rem;
             opacity: 0;
         }
 
         .hero-title {
-            font-size: 3rem;
+            font-size: 2.8rem;
             font-weight: 800;
+            margin: 10px 0;
             background: linear-gradient(to bottom right, #fff, #94a3b8);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 8px;
         }
     </style>
 </head>
@@ -244,45 +242,44 @@
 
     <div class="app-shell">
         
-        <div id="screen-loading" class="screen active" style="justify-content: center; align-items: center;">
+        <!-- Chargement -->
+        <div id="screen-loading" class="screen active" style="justify-content: center; align-items: center; text-align: center;">
             <div class="stat-badge" style="font-size: 1.5rem; padding: 20px;">
                 <i class="fas fa-globe-europe fa-spin"></i>
             </div>
-            <p style="margin-top: 20px; color: var(--text-dim)" id="loading-text">Initialisation de l'Europe...</p>
-            <button id="retry-btn" class="btn-fancy btn-outline" style="display: none; width: auto; margin-top: 20px;" onclick="game.init()">Réessayer</button>
+            <p style="margin-top: 20px; color: var(--text-dim)" id="loading-text">Préparation du voyage en Europe...</p>
         </div>
 
+        <!-- Menu Principal -->
         <div id="screen-menu" class="screen">
             <div style="margin-top: 60px; text-align: center;">
-                <p style="color: #60a5fa; font-weight: 800; letter-spacing: 4px;">ÉDITION SPÉCIALE</p>
-                <h1 class="hero-title">EUROPE QUIZ</h1>
-                <p style="color: var(--text-dim); margin-bottom: 40px;">Drapeaux, Pays et Capitales du continent européen</p>
+                <p style="color: var(--accent-light); font-weight: 800; letter-spacing: 4px;">ÉDITION EUROPE</p>
+                <h1 class="hero-title">FLAG MASTER</h1>
+                <p style="color: var(--text-dim); margin-bottom: 40px;">Devinez les pays et leurs capitales</p>
             </div>
 
-            <div class="options-list" style="margin-top: auto;">
+            <div style="margin-top: auto;">
                 <button class="btn-fancy" onclick="game.start('flag')">
-                    <i class="fas fa-flag"></i> Mode Drapeaux
+                    <i class="fas fa-play"></i> COMMENCER LE QUIZ
                 </button>
-                <button class="btn-fancy btn-outline" onclick="game.start('capital')">
-                    <i class="fas fa-city"></i> Mode Capitales
-                </button>
-                <button class="btn-fancy btn-outline" onclick="game.start('country')">
-                    <i class="fas fa-map-marked-alt"></i> Mode Pays
-                </button>
+                <p style="text-align: center; color: var(--text-dim); font-size: 0.85rem; margin-top: 20px;">
+                    <i class="fas fa-info-circle"></i> Vous devrez trouver le pays ET sa capitale pour chaque drapeau.
+                </p>
             </div>
         </div>
 
+        <!-- Jeu -->
         <div id="screen-game" class="screen">
             <div class="top-bar">
-                <button class="btn-outline" style="width: 40px; height: 40px; border-radius: 12px; border: none; background: var(--glass);" onclick="game.quit()">
-                    <i class="fas fa-chevron-left"></i>
+                <button class="btn-outline" style="width: 40px; height: 40px; border-radius: 12px; border: none;" onclick="game.quit()">
+                    <i class="fas fa-times"></i>
                 </button>
                 <div class="stat-badge">
-                    <i class="fas fa-fire" id="stat-streak-icon"></i>
+                    <i class="fas fa-fire" id="streak-icon"></i>
                     <span id="stat-streak">0</span>
                 </div>
                 <div class="stat-badge">
-                    <i class="fas fa-heart" style="color: #ef4444"></i>
+                    <i class="fas fa-heart" style="color: var(--danger)"></i>
                     <span id="stat-lives">3</span>
                 </div>
             </div>
@@ -291,77 +288,73 @@
                 <div id="progress-bar" class="progress-fill"></div>
             </div>
 
-            <div id="question-area">
-                <div class="question-label" id="label-type">PAYS</div>
-                <div class="question-text" id="question-text">France</div>
-                <div class="flag-container" id="flag-display" style="display: none;">
-                    <img src="" class="flag-img" id="flag-img">
+            <div class="question-header">
+                <div class="question-label" id="step-label">ÉTAPE 1 : LE PAYS</div>
+                <div class="step-indicator">
+                    <div id="dot-1" class="step-dot active"></div>
+                    <div id="dot-2" class="step-dot"></div>
                 </div>
             </div>
 
-            <div class="options-list" id="options-grid">
+            <div class="main-display" id="main-display">
+                <!-- Drapeau ou Texte injecté ici -->
             </div>
 
-            <div style="margin-top: 24px;">
-                <button class="btn-fancy btn-outline" style="padding: 12px; font-size: 0.9rem;" id="btn-hint" onclick="game.useHint()">
-                    <i class="fas fa-lightbulb"></i> Indice (Aide visuelle)
+            <div class="options-grid" id="options-grid">
+                <!-- Options injectées ici -->
+            </div>
+
+            <div style="margin-top: 20px;">
+                <button class="btn-fancy btn-outline" style="padding: 10px; font-size: 0.9rem;" onclick="game.showHint()">
+                    <i class="fas fa-lightbulb"></i> Besoin d'aide ?
                 </button>
             </div>
         </div>
 
+        <!-- Résultats -->
         <div id="screen-result" class="screen" style="justify-content: center;">
-            <div class="card">
-                <div class="stat-badge" style="margin: 0 auto 20px; width: fit-content;">
-                    <i class="fas fa-trophy" style="color: #fbbf24"></i> SCORE FINAL
-                </div>
-                <h2 id="final-score" style="font-size: 3.5rem; margin: 0;">240</h2>
-                <p id="final-msg" style="color: var(--text-dim); margin: 20px 0 40px;">Impressionnant ! L'Europe n'a plus de secrets pour vous.</p>
-                <button class="btn-fancy" onclick="game.showMenu()">REJOUER</button>
+            <div class="main-display" style="min-height: 300px;">
+                <i class="fas fa-trophy" style="font-size: 3rem; color: #fbbf24; margin-bottom: 20px;"></i>
+                <h2 style="margin: 0;">SCORE FINAL</h2>
+                <div style="font-size: 4rem; font-weight: 800; color: var(--accent-light);" id="final-score">0</div>
+                <p id="final-msg" style="color: var(--text-dim); margin-bottom: 30px;">Bravo ! Vous êtes un expert de l'Europe.</p>
+                <button class="btn-fancy" onclick="game.showMenu()">RETOUR AU MENU</button>
             </div>
         </div>
 
     </div>
 
-    <div id="feedback" class="feedback-overlay"></div>
+    <div id="feedback" class="feedback-pop"></div>
 
     <script>
         const DATA_SOURCE = 'https://raw.githubusercontent.com/mledoze/countries/master/countries.json';
-        const FLAG_CDN = 'https://flagcdn.com/w320/';
+        const FLAG_CDN = 'https://flagcdn.com/w640/';
 
         const game = {
-            data: [],
+            allCountries: [],
             current: null,
+            step: 1, // 1: Country, 2: Capital
             score: 0,
             lives: 3,
             streak: 0,
-            mode: 'flag',
-            qCount: 0,
-            maxQ: 10,
+            qIndex: 0,
+            maxQuestions: 10,
 
             async init() {
-                const loadingText = document.getElementById('loading-text');
-                const retryBtn = document.getElementById('retry-btn');
-                
-                loadingText.innerText = "Cartographie de l'Europe...";
-                retryBtn.style.display = 'none';
-
                 try {
                     const res = await fetch(DATA_SOURCE);
                     const raw = await res.json();
                     
-                    // CRITICAL FILTER: Filter ONLY for Europe region
-                    this.data = raw.filter(c => c.capital?.[0] && c.cca2 && c.region === 'Europe').map(c => ({
-                        name: { common: c.name.common },
-                        capital: c.capital,
-                        cca2: c.cca2.toLowerCase(),
-                        flags: { png: `${FLAG_CDN}${c.cca2.toLowerCase()}.png` }
+                    // Filtrage Europe + Traduction française
+                    this.allCountries = raw.filter(c => c.region === 'Europe' && c.capital?.[0]).map(c => ({
+                        name: c.translations.fra?.common || c.name.common,
+                        capital: c.capital[0],
+                        code: c.cca2.toLowerCase()
                     }));
                     
                     this.switchScreen('menu');
-                } catch (err) {
-                    console.error(err);
-                    loadingText.innerText = "Erreur de connexion aux serveurs de géographie.";
-                    retryBtn.style.display = 'block';
+                } catch (e) {
+                    document.getElementById('loading-text').innerText = "Erreur de chargement. Vérifiez votre connexion.";
                 }
             },
 
@@ -370,106 +363,123 @@
                 document.getElementById(`screen-${id}`).classList.add('active');
             },
 
-            start(mode) {
-                this.mode = mode;
+            start() {
                 this.score = 0;
                 this.lives = 3;
                 this.streak = 0;
-                this.qCount = 0;
-                this.updateStats();
+                this.qIndex = 0;
                 this.nextQuestion();
                 this.switchScreen('game');
             },
 
             nextQuestion() {
-                if (this.lives <= 0 || this.qCount >= this.maxQ) {
+                if (this.lives <= 0 || this.qIndex >= this.maxQuestions) {
                     this.end();
                     return;
                 }
 
-                this.qCount++;
-                const correct = this.data[Math.floor(Math.random() * this.data.length)];
-                this.current = correct;
-
-                let options = [correct];
-                while(options.length < 4) {
-                    const r = this.data[Math.floor(Math.random() * this.data.length)];
-                    if(!options.includes(r)) options.push(r);
-                }
-                options.sort(() => Math.random() - 0.5);
-
-                this.render(options);
+                this.qIndex++;
+                this.step = 1;
+                this.current = this.allCountries[Math.floor(Math.random() * this.allCountries.length)];
+                
+                this.updateUI();
+                this.renderStep();
             },
 
-            render(options) {
-                const text = document.getElementById('question-text');
-                const label = document.getElementById('label-type');
-                const flagBox = document.getElementById('flag-display');
-                const img = document.getElementById('flag-img');
+            renderStep() {
+                const display = document.getElementById('main-display');
                 const grid = document.getElementById('options-grid');
-                const progress = document.getElementById('progress-bar');
-                const hintBtn = document.getElementById('btn-hint');
+                const label = document.getElementById('step-label');
+                const dot1 = document.getElementById('dot-1');
+                const dot2 = document.getElementById('dot-2');
 
                 grid.innerHTML = '';
-                flagBox.style.display = 'none';
-                progress.style.width = `${(this.qCount / this.maxQ) * 100}%`;
-                hintBtn.style.opacity = '1';
-                hintBtn.style.pointerEvents = 'auto';
-
-                if (this.mode === 'flag') {
-                    label.innerText = 'À QUEL PAYS APPARTIENT CE DRAPEAU EUROPEEN ?';
-                    text.style.display = 'none';
-                    flagBox.style.display = 'flex';
-                    img.src = this.current.flags.png;
-                    this.fillOptions(options, 'name.common', grid);
-                } else if (this.mode === 'capital') {
-                    label.innerText = 'QUEL EST LE PAYS DE CETTE CAPITALE EUROPEENNE ?';
-                    text.style.display = 'block';
-                    text.innerText = this.current.capital[0];
-                    this.fillOptions(options, 'name.common', grid);
+                
+                if (this.step === 1) {
+                    label.innerText = "ÉTAPE 1 : QUEL EST CE PAYS ?";
+                    dot1.className = 'step-dot active';
+                    dot2.className = 'step-dot';
+                    display.innerHTML = `<img src="${FLAG_CDN}${this.current.code}.png" class="flag-img">`;
+                    this.fillOptions('name');
                 } else {
-                    label.innerText = 'QUELLE EST LA CAPITALE DE CE PAYS EUROPEEN ?';
-                    text.style.display = 'block';
-                    text.innerText = this.current.name.common;
-                    this.fillOptions(options, 'capital.0', grid);
+                    label.innerText = `ÉTAPE 2 : LA CAPITALE DE ${this.current.name.toUpperCase()} ?`;
+                    dot1.className = 'step-dot done';
+                    dot2.className = 'step-dot active';
+                    display.innerHTML = `<div class="display-text">${this.current.name}</div>`;
+                    this.fillOptions('capital');
                 }
             },
 
-            fillOptions(options, path, container) {
+            fillOptions(type) {
+                const grid = document.getElementById('options-grid');
+                let options = [this.current];
+                
+                while (options.length < 4) {
+                    const r = this.allCountries[Math.floor(Math.random() * this.allCountries.length)];
+                    if (!options.includes(r)) options.push(r);
+                }
+                
+                options.sort(() => Math.random() - 0.5);
+
                 options.forEach(opt => {
-                    const val = path.split('.').reduce((o, i) => o[i], opt);
-                    const div = document.createElement('div');
-                    div.className = 'option-item';
-                    div.innerHTML = `<span>${val}</span><i class="fas fa-chevron-right" style="opacity: 0.3"></i>`;
-                    div.onclick = () => this.check(opt, div);
-                    container.appendChild(div);
+                    const btn = document.createElement('div');
+                    btn.className = 'option-btn';
+                    const text = type === 'name' ? opt.name : opt.capital;
+                    btn.innerHTML = `<span>${text}</span><i class="fas fa-chevron-right"></i>`;
+                    btn.onclick = () => this.check(opt, btn);
+                    grid.appendChild(btn);
                 });
             },
 
-            check(selected, el) {
+            check(selected, btn) {
                 const isCorrect = selected === this.current;
-                const items = document.querySelectorAll('.option-item');
-                items.forEach(i => i.style.pointerEvents = 'none');
+                const btns = document.querySelectorAll('.option-btn');
+                btns.forEach(b => b.style.pointerEvents = 'none');
 
                 if (isCorrect) {
-                    el.classList.add('correct');
-                    this.streak++;
-                    this.score += (10 * this.streak);
+                    btn.classList.add('correct');
                     this.showFeedback('✅');
+                    
+                    if (this.step === 1) {
+                        this.step = 2;
+                        setTimeout(() => this.renderStep(), 800);
+                    } else {
+                        this.streak++;
+                        this.score += (10 * this.streak);
+                        this.updateUI();
+                        setTimeout(() => this.nextQuestion(), 1000);
+                    }
                 } else {
-                    el.classList.add('wrong');
-                    this.streak = 0;
+                    btn.classList.add('wrong');
                     this.lives--;
+                    this.streak = 0;
                     this.showFeedback('❌');
-                    items.forEach(i => {
-                        const val = i.querySelector('span').innerText;
-                        const correctVal = this.mode === 'country' ? this.current.capital[0] : this.current.name.common;
-                        if(val === correctVal) i.classList.add('correct');
-                    });
-                }
+                    this.updateUI();
 
-                this.updateStats();
-                setTimeout(() => this.nextQuestion(), 1200);
+                    // Afficher la bonne réponse
+                    btns.forEach(b => {
+                        const t = b.querySelector('span').innerText;
+                        if (t === (this.step === 1 ? this.current.name : this.current.capital)) {
+                            b.classList.add('correct');
+                        }
+                    });
+
+                    setTimeout(() => this.nextQuestion(), 1500);
+                }
+            },
+
+            showHint() {
+                const btns = Array.from(document.querySelectorAll('.option-btn'));
+                const correctText = this.step === 1 ? this.current.name : this.current.capital;
+                let hidden = 0;
+                
+                btns.forEach(b => {
+                    if (b.querySelector('span').innerText !== correctText && hidden < 2) {
+                        b.style.opacity = '0.3';
+                        b.style.pointerEvents = 'none';
+                        hidden++;
+                    }
+                });
             },
 
             showFeedback(emoji) {
@@ -477,55 +487,33 @@
                 f.innerText = emoji;
                 f.style.opacity = '1';
                 f.animate([
-                    { transform: 'scale(0.5)', opacity: 0 },
-                    { transform: 'scale(1.2)', opacity: 1, offset: 0.5 },
-                    { transform: 'scale(1)', opacity: 0 }
+                    { transform: 'translate(-50%, -30%) scale(0.5)', opacity: 0 },
+                    { transform: 'translate(-50%, -50%) scale(1.2)', opacity: 1, offset: 0.5 },
+                    { transform: 'translate(-50%, -70%) scale(1)', opacity: 0 }
                 ], { duration: 800 });
             },
 
-            useHint() {
-                const hintBtn = document.getElementById('btn-hint');
-                hintBtn.style.opacity = '0.5';
-                hintBtn.style.pointerEvents = 'none';
-                
-                if (this.mode !== 'flag') {
-                    const flagBox = document.getElementById('flag-display');
-                    const img = document.getElementById('flag-img');
-                    flagBox.style.display = 'flex';
-                    img.src = this.current.flags.png;
-                } else {
-                    const items = Array.from(document.querySelectorAll('.option-item'));
-                    let removed = 0;
-                    items.forEach(item => {
-                        const val = item.querySelector('span').innerText;
-                        if(val !== this.current.name.common && removed < 2) {
-                            item.style.opacity = '0.2';
-                            item.style.pointerEvents = 'none';
-                            removed++;
-                        }
-                    });
-                }
-            },
-
-            updateStats() {
+            updateUI() {
                 document.getElementById('stat-streak').innerText = this.streak;
                 document.getElementById('stat-lives').innerText = this.lives;
-                const sIcon = document.getElementById('stat-streak-icon');
-                if(this.streak >= 3) sIcon.classList.add('streak-fire');
-                else sIcon.classList.remove('streak-fire');
+                document.getElementById('progress-bar').style.width = `${(this.qIndex / this.maxQuestions) * 100}%`;
+                
+                const sIcon = document.getElementById('streak-icon');
+                if (this.streak >= 3) sIcon.style.color = "#fbbf24";
+                else sIcon.style.color = "inherit";
             },
 
             end() {
                 document.getElementById('final-score').innerText = this.score;
                 const msg = document.getElementById('final-msg');
-                if(this.score > 200) msg.innerText = "Légendaire ! L'Europe n'a plus de secrets pour vous.";
-                else if(this.score > 100) msg.innerText = "Pas mal ! Encore un peu d'entraînement.";
-                else msg.innerText = "Continuez d'apprendre, l'Europe est pleine de surprises !";
+                if (this.score >= 200) msg.innerText = "Légendaire ! L'Europe est votre jardin.";
+                else if (this.score >= 100) msg.innerText = "Pas mal ! Vous connaissez bien vos classiques.";
+                else msg.innerText = "Continuez de réviser, les capitales sont piégeuses !";
                 this.switchScreen('result');
             },
 
             showMenu() { this.switchScreen('menu'); },
-            quit() { if(confirm("Quitter la partie ?")) this.showMenu(); }
+            quit() { if (confirm("Quitter la partie ?")) this.showMenu(); }
         };
 
         window.onload = () => game.init();
