@@ -39,7 +39,6 @@
             align-items: center;
         }
 
-        /* --- UI Layers --- */
         .app-shell {
             width: 100%;
             max-width: 480px;
@@ -72,7 +71,6 @@
             z-index: 10;
         }
 
-        /* --- Header & Stats --- */
         .top-bar {
             display: flex;
             justify-content: space-between;
@@ -93,7 +91,6 @@
 
         .stat-badge i { color: var(--accent-light); }
 
-        /* --- Components --- */
         .card {
             background: var(--card-bg);
             border-radius: 24px;
@@ -130,7 +127,6 @@
             color: var(--text-main);
         }
 
-        /* --- Question UI --- */
         .question-label {
             color: var(--text-dim);
             text-transform: uppercase;
@@ -196,7 +192,6 @@
             color: var(--danger);
         }
 
-        /* --- Progress Bar --- */
         .progress-track {
             height: 6px;
             background: var(--glass);
@@ -212,7 +207,6 @@
             transition: width 0.3s ease;
         }
 
-        /* --- Special Effects --- */
         .streak-fire {
             animation: flicker 0.5s infinite alternate;
             color: #fbbf24 !important;
@@ -235,7 +229,6 @@
             opacity: 0;
         }
 
-        /* --- Onboarding --- */
         .hero-title {
             font-size: 3rem;
             font-weight: 800;
@@ -250,15 +243,14 @@
 
     <div class="app-shell">
         
-        <!-- Loading Screen -->
         <div id="screen-loading" class="screen active" style="justify-content: center; align-items: center;">
             <div class="stat-badge" style="font-size: 1.5rem; padding: 20px;">
                 <i class="fas fa-globe-africa fa-spin"></i>
             </div>
-            <p style="margin-top: 20px; color: var(--text-dim)">Initialisation du monde...</p>
+            <p style="margin-top: 20px; color: var(--text-dim)" id="loading-text">Initialisation du monde...</p>
+            <button id="retry-btn" class="btn-fancy btn-outline" style="display: none; width: auto; margin-top: 20px;" onclick="game.init()">Réessayer</button>
         </div>
 
-        <!-- Menu Screen -->
         <div id="screen-menu" class="screen">
             <div style="margin-top: 60px; text-align: center;">
                 <p style="color: var(--accent-light); font-weight: 800; letter-spacing: 4px;">BIENVENUE SUR</p>
@@ -279,7 +271,6 @@
             </div>
         </div>
 
-        <!-- Game Screen -->
         <div id="screen-game" class="screen">
             <div class="top-bar">
                 <button class="btn-outline" style="width: 40px; height: 40px; border-radius: 12px; border: none; background: var(--glass);" onclick="game.quit()">
@@ -308,7 +299,6 @@
             </div>
 
             <div class="options-list" id="options-grid">
-                <!-- Options injected here -->
             </div>
 
             <div style="margin-top: 24px;">
@@ -318,7 +308,6 @@
             </div>
         </div>
 
-        <!-- Result Screen -->
         <div id="screen-result" class="screen" style="justify-content: center;">
             <div class="card">
                 <div class="stat-badge" style="margin: 0 auto 20px; width: fit-content;">
@@ -335,7 +324,9 @@
     <div id="feedback" class="feedback-overlay"></div>
 
     <script>
-        const API_URL = 'https://restcountries.com/v3.1/all?fields=name,capital,flags,region';
+        // Use a more stable backup API source (GitHub raw)
+        const DATA_SOURCE = 'https://raw.githubusercontent.com/mledoze/countries/master/countries.json';
+        const FLAG_CDN = 'https://flagcdn.com/w320/'; // {cca2}.png
 
         const game = {
             data: [],
@@ -348,13 +339,29 @@
             maxQ: 10,
 
             async init() {
+                const loadingText = document.getElementById('loading-text');
+                const retryBtn = document.getElementById('retry-btn');
+                
+                loadingText.innerText = "Chargement des frontières...";
+                retryBtn.style.display = 'none';
+
                 try {
-                    const res = await fetch(API_URL);
+                    const res = await fetch(DATA_SOURCE);
                     const raw = await res.json();
-                    this.data = raw.filter(c => c.capital?.[0] && c.flags?.png);
+                    
+                    // Filter and format data to match previous logic
+                    this.data = raw.filter(c => c.capital?.[0] && c.cca2).map(c => ({
+                        name: { common: c.name.common },
+                        capital: c.capital,
+                        cca2: c.cca2.toLowerCase(),
+                        flags: { png: `${FLAG_CDN}${c.cca2.toLowerCase()}.png` }
+                    }));
+                    
                     this.switchScreen('menu');
                 } catch (err) {
-                    alert("Erreur de connexion. L'API est peut-être indisponible.");
+                    console.error(err);
+                    loadingText.innerText = "Erreur de connexion aux serveurs de géographie.";
+                    retryBtn.style.display = 'block';
                 }
             },
 
@@ -401,10 +408,13 @@
                 const img = document.getElementById('flag-img');
                 const grid = document.getElementById('options-grid');
                 const progress = document.getElementById('progress-bar');
+                const hintBtn = document.getElementById('btn-hint');
 
                 grid.innerHTML = '';
                 flagBox.style.display = 'none';
                 progress.style.width = `${(this.qCount / this.maxQ) * 100}%`;
+                hintBtn.style.opacity = '1';
+                hintBtn.style.pointerEvents = 'auto';
 
                 if (this.mode === 'flag') {
                     label.innerText = 'À QUEL PAYS APPARTIENT CE DRAPEAU ?';
@@ -451,7 +461,6 @@
                     this.streak = 0;
                     this.lives--;
                     this.showFeedback('❌');
-                    // Show correct one
                     items.forEach(i => {
                         const val = i.querySelector('span').innerText;
                         const correctVal = this.mode === 'country' ? this.current.capital[0] : this.current.name.common;
@@ -485,7 +494,6 @@
                     flagBox.style.display = 'flex';
                     img.src = this.current.flags.png;
                 } else {
-                    // Logic for flag mode hint: remove 2 wrong answers
                     const items = Array.from(document.querySelectorAll('.option-item'));
                     let removed = 0;
                     items.forEach(item => {
